@@ -22,5 +22,6 @@ executable gallery
                      , containers
                      , raw-strings-qq
                      , regex-posix
+                     , time
                      , reddit
                      , scotty
