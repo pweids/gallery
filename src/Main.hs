@@ -17,11 +17,15 @@ import qualified Data.Set as S
 import Data.Maybe (mapMaybe)
 import Text.RawString.QQ
 import Data.Monoid (mconcat)
+import Text.Regex.Posix
 
 opts = R.RedditOptions True Nothing R.Anonymous (Just "haskell api test (by /u/thidr0)")
 
+-- todo: add a main page
 main :: IO ()
 main = scotty 3000 $ do
+  get "/" $ html "<h1>Go to /<username></h1>"
+
   get "/:user" $ do
     user <- param "user"
     posts <- usersPosts user
@@ -30,6 +34,7 @@ main = scotty 3000 $ do
       Nothing -> html $ mconcat ["<h1>", user, " not found.</h1>"]
       Just pl -> html $ linksToHtml (S.toList pl)
 
+-- TODO: break this up: get post listings, convert to datatype for display, add to set, display
 usersPosts :: TL.Text -> ActionM (Maybe (S.Set TS.Text))
 usersPosts user = go (R.Username (TL.toStrict user)) Nothing
   where 
@@ -57,8 +62,11 @@ usersPosts user = go (R.Username (TL.toStrict user)) Nothing
 getPostLinks :: [Post] -> S.Set TS.Text
 getPostLinks = S.fromList . mapMaybe (linkText . content)
 
+isPicture :: TS.Text -> Bool
+isPicture t = TS.unpack t =~ ("\\.(jpe?g|png|tiff|gif)$" :: String)
+
 linkText :: PostContent -> Maybe TS.Text
-linkText (R.Link t) = Just t
+linkText (R.Link t) = if isPicture t then Just t else Nothing
 linkText _ = Nothing
 
 linksToHtml :: [TS.Text] -> TL.Text
