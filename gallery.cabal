@@ -22,3 +22,4 @@ executable gallery
                      , containers
                      , raw-strings-qq
                      , reddit
+                     , scotty

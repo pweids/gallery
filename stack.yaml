@@ -40,6 +40,7 @@ packages:
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
 extra-deps:
+  - regex-posix-clib-2.7
   - github: intolerable/reddit
     commit: 588901f79e684536a6839d63e6f9c6a4847fe001
   - github: intolerable/api-builder
@@ -47,7 +48,9 @@ extra-deps:
 
 
 # Override default flag values for local packages and extra-deps
-# flags: {}
+flags:
+  regex-posix:
+    _regex-posix-clib: true
 
 # Extra package databases containing global packages
 # extra-package-dbs: []
