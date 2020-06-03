@@ -19,6 +19,7 @@ import Text.RawString.QQ
 import Data.Monoid (mconcat)
 import Text.Regex.Posix
 import Data.Time.Clock (UTCTime, utctDay)
+import Control.Monad.IO.Class (liftIO)
 
 opts = R.RedditOptions True Nothing R.Anonymous (Just "haskell api test (by /u/thidr0)")
 
@@ -54,7 +55,8 @@ main = scotty 3000 $ do
     html $ mconcat ["<h1>", user, " not found.</h1>"]
     case imgs of
       Nothing -> html $ mconcat ["<h1>", user, " not found.</h1>"]
-      Just is -> html $ linksToHtml is
+      Just is -> html $ linksToHtml user is
+
 
 usersImgs :: TL.Text -> ActionM (Maybe [Image])
 usersImgs user = go (R.Username (TL.toStrict user)) Nothing
@@ -97,14 +99,15 @@ linkText _ = Nothing
 isPicture :: TS.Text -> Bool
 isPicture t = TS.unpack t =~ ("\\.(jpe?g|png|tiff|gif)$" :: String)
 
-linksToHtml :: [Image] -> TL.Text
-linksToHtml ts = TL.pack $ [r|<html>
+linksToHtml :: TL.Text -> [Image] -> TL.Text
+linksToHtml user ts = TL.pack $ [r|<html>
 <head><title>Gallery</title>
 <style type="text/css">
 img {max-width:100%; height:auto}
 </style>
 </head>
-<body>|] ++ links ++ [r|</body></html>|]
+<body><h1>|] ++ TL.unpack user ++ "'s Gallery (" ++ (show $ length ts) ++ " images)" 
+  ++ links ++ [r|</body></html>|]
   where links = unwords $ linkPrintf <$> ts
         linkPrintf i = printf 
                         "<h2>%s (%s)</h2><a href = \"https://www.reddit.com%s\"><img src=\"%s\" /></a>\n" 
